@@ -1,8 +1,6 @@
 import java.io.File;
-import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
@@ -19,7 +17,6 @@ public class TCPServer {
             buffer.get(a);
             //String fileName = new String(a);
             String ServerDirectory = "ServerFiles/";
-            String ResponseBack;
             StringBuilder output= new StringBuilder();
 
             //added from tcp server code
