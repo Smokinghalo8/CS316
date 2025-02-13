@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 public class TCPClient {
     public static void main(String[] args) throws Exception {
-        ServerErrorHandling errorHandling = new ServerErrorHandling();
+        ClientErrorHandling errorHandling = new ClientErrorHandling();
 
         int serverPort = Integer.parseInt(args[1]);
         Scanner keyboard = new Scanner(System.in);
@@ -36,11 +36,28 @@ public class TCPClient {
             case "DELETE":
                 deleteFile(channel);
                 break;
+            case "RENAME":
+                renameFile(channel);
+            case "DOWNLOAD":
+
 
         }
         channel.shutdownOutput();
         channel.close();
 
+   }
+
+   static void renameFile(SocketChannel channel) throws IOException {
+       Scanner input = new Scanner(System.in);
+       StringBuilder filenames = new StringBuilder();
+       System.out.println("Enter the name of the file you would like to rename (including extension)");
+       filenames.append(input.nextLine()).append("\n");
+
+       System.out.println("Enter the name you would like to name the file");
+       filenames.append(input.nextLine());
+       ByteBuffer buffer = ByteBuffer.wrap(filenames.toString().getBytes());
+       channel.write(buffer);
+       serverOutput(channel);
    }
 
    static void deleteFile(SocketChannel channel) throws IOException {

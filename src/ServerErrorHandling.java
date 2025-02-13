@@ -1,14 +1,8 @@
-public class ServerErrorHandling {
-    void CheckForCorrectAmountOfArguments(String[] args){
-        if (args.length != 2){
-            System.out.println("Please provide serverIP and serverPort");
-        }
-    }
+import java.io.File;
 
-    Boolean CheckForProperCommand(String command){
-        return switch (command) {
-            case "LIST", "UPLOAD", "DELETE", "RENAME", "DOWNLOAD" -> true;
-            default -> false;
-        };
+public class ServerErrorHandling {
+    Boolean checkIfFileExists(String file){
+        File checkFile = new File("ServerFiles/"+file);
+        return checkFile.exists();
     }
 }
