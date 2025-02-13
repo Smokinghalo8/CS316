@@ -27,28 +27,34 @@ public class TCPClient {
         channel.connect(new InetSocketAddress(args[0],serverPort));
 
         ByteBuffer buffer = ByteBuffer.wrap(commandName.getBytes());
-
         channel.write(buffer);
+
+        switch (commandName){
+            case "LIST":
+                serverOutput(channel);
+                break;
+            case "DELETE":
+                deleteFile(channel);
+                break;
+
+        }
         channel.shutdownOutput();
+        channel.close();
 
-        listOutput(channel);
-
-//        FileOutputStream fs = new FileOutputStream("ClientFiles/"+filename,true);
-//        FileChannel fc = fs.getChannel();
-//
-//        while(channel.read(fileContent)>=0){
-//            replyBuffer.flip();
-//            fc.write(fileContent);
-//            replyBuffer.clear();
-//        }
-//        fs.close();
-//        channel.close();
    }
 
-   static void listOutput(SocketChannel channel) throws IOException {
+   static void deleteFile(SocketChannel channel) throws IOException {
+       Scanner input = new Scanner(System.in);
+       System.out.print("Enter the name of the file you would like to delete: ");
+       String fileName = input.nextLine();
+       ByteBuffer buffer = ByteBuffer.wrap(fileName.getBytes());
+       channel.write(buffer);
+       serverOutput(channel);
+   }
+
+   static void serverOutput(SocketChannel channel) throws IOException {
        ByteBuffer replyBuffer = ByteBuffer.allocate(1024);
        int bytesRead = channel.read(replyBuffer);
-       channel.close();
        replyBuffer.flip();
        byte[] a = new byte[bytesRead];
        replyBuffer.get(a);

@@ -15,24 +15,21 @@ public class TCPServer {
             buffer.flip();
             byte[] a = new byte[bytesRead];
             buffer.get(a);
-            //String fileName = new String(a);
             String ServerDirectory = "ServerFiles/";
             StringBuilder output= new StringBuilder();
 
-            //added from tcp server code
             String clientMessage= new String(a);
-            System.out.println("Client Message: "+clientMessage);
             switch(clientMessage){
-                case "LIST"://UNTESTED
-                    File serverDirectoryObject = new File(ServerDirectory);
-                    File[] serverFiles = serverDirectoryObject.listFiles();
-                    if(serverFiles!=null){
-                        for (File file : serverFiles){
-                            output.append(file.toString().substring(12)).append("\n");
-                        }
-                    }
+                case "LIST":
+                    output.append(getListOfFiles(ServerDirectory));
                     break;
                 case "DELETE":
+                    buffer.clear();
+                    bytesRead = serveChannel.read(buffer);
+                    buffer.flip();
+                    a = new byte[bytesRead];
+                    buffer.get(a);
+                    output.append(deleteFile(a,ServerDirectory));
                     break;
                 case "RENAME":
                     break;
@@ -44,39 +41,30 @@ public class TCPServer {
                     break;
             }
 
-            //reply back to client
+
             ByteBuffer replyBuffer = ByteBuffer.wrap(output.toString().getBytes());
             serveChannel.write(replyBuffer);
             serveChannel.close();
-//          String clientMessage = new String(a);
-
-            //System.out.println("Filename : " + fileName);
-
-//          ByteBuffer replyBuffer = ByteBuffer.wrap(clientMessage.toUpperCase().getBytes());
-
-            //File file = new File("ServerFiles/"+fileName);
-
-
-            /*
-            if(!file.exists()) {
-                System.out.println("File doesn't exist");
-            } else {
-                FileInputStream fs = new FileInputStream("ServerFiles/" + fileName);
-                FileChannel fc = fs.getChannel();
-                ByteBuffer fileContent = ByteBuffer.allocate(1024);
-
-                do{
-                    bytesRead = fc.read(fileContent);
-                    fileContent.flip();
-                    serveChannel.write(fileContent);
-                    fileContent.clear();
-                }
-                while(bytesRead >= 20);
-                serveChannel.close();
-            }//end else
-            */
-
-
+        }
+    }
+    static String getListOfFiles(String fileDirectory){
+        StringBuilder output = new StringBuilder();
+        File fileDirectoryObject = new File(fileDirectory);
+        File[] serverFiles = fileDirectoryObject.listFiles();
+        if(serverFiles!=null){
+            for (File file : serverFiles){
+                output.append(file.toString().substring(12)).append("\n");
+            }
+        }
+        return output.toString();
+    }
+    static String deleteFile(byte[] a, String ServerDirectory){
+        String fileName = new String(a);
+        File myObj = new File(ServerDirectory+fileName);
+        if (myObj.delete()) {
+            return "Deleted the file: " + myObj.getName();
+        } else {
+            return "Failed to delete the file.";
         }
     }
 }
