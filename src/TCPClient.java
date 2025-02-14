@@ -45,7 +45,6 @@ public class TCPClient {
                     break;
                 case "UPLOAD":
                     uploadFile(channel);
-                    serverOutput(channel);
                     break;
             }
             channel.close();
@@ -110,8 +109,8 @@ public class TCPClient {
            fileContent.clear();
        }while(byteRead>=0);
        channel.shutdownOutput();
-       serverOutput(channel);
        fs.close();
+       serverOutput(channel);
    }
 
    static void serverOutput(SocketChannel channel) throws IOException {
