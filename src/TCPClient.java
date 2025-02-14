@@ -1,6 +1,8 @@
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
 import java.util.Scanner;
 
@@ -38,13 +40,32 @@ public class TCPClient {
                 break;
             case "RENAME":
                 renameFile(channel);
+                break;
             case "DOWNLOAD":
-
+                downloadFile(channel);
+                break;
 
         }
         channel.shutdownOutput();
         channel.close();
 
+   }
+
+   static void downloadFile(SocketChannel channel) throws IOException {
+       Scanner input = new Scanner(System.in);
+       System.out.println("Enter the file you would like to download");
+       String file = input.nextLine();
+       ByteBuffer buffer = ByteBuffer.wrap(file.getBytes());
+       channel.write(buffer);
+
+       FileOutputStream fs = new FileOutputStream("ClientFiles/"+file,true);
+       FileChannel fc = fs.getChannel();
+       ByteBuffer fileContent = ByteBuffer.allocate(1024);
+       while(channel.read(fileContent)>=0){
+           fileContent.flip();
+           fc.write(fileContent);
+           fileContent.clear();
+       }
    }
 
    static void renameFile(SocketChannel channel) throws IOException {
