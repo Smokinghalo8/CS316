@@ -15,44 +15,21 @@ public class TCPServer {
         listenChannel.bind(new InetSocketAddress(3002));
         while(true) {
             SocketChannel serveChannel = listenChannel.accept();
-            ByteBuffer buffer = ByteBuffer.allocate(1024);
-            int bytesRead = serveChannel.read(buffer);
-            buffer.flip();
-            byte[] byteArray = new byte[bytesRead];
-            buffer.get(byteArray);
             String ServerDirectory = "ServerFiles/";
-            String filename;
 
-            String clientMessage= new String(byteArray);
+            String clientMessage= getFileName(serveChannel);
             switch(clientMessage){
                 case "LIST":
                     getListOfFiles(ServerDirectory,serveChannel);
                     break;
                 case "DELETE":
-                    buffer.clear();
-                    bytesRead = serveChannel.read(buffer);
-                    buffer.flip();
-                    byteArray = new byte[bytesRead];
-                    buffer.get(byteArray);
-                    deleteFile(byteArray,ServerDirectory,serveChannel);
+                    deleteFile(getFileName(serveChannel),ServerDirectory,serveChannel);
                     break;
                 case "RENAME":
-                    buffer.clear();
-                    bytesRead = serveChannel.read(buffer);
-                    buffer.flip();
-                    byteArray = new byte[bytesRead];
-                    buffer.get(byteArray);
-                    filename = new String(byteArray);
-                    renameFile(filename,serveChannel);
+                    renameFile(getFileName(serveChannel),serveChannel);
                     break;
                 case "DOWNLOAD":
-                    buffer.clear();
-                    bytesRead = serveChannel.read(buffer);
-                    buffer.flip();
-                    byteArray = new byte[bytesRead];
-                    buffer.get(byteArray);
-                    filename = new String(byteArray);
-                    downloadFile(filename,serveChannel);
+                    downloadFile(getFileName(serveChannel),serveChannel);
                     break;
                 case "UPLOAD":
                     break;
@@ -92,9 +69,8 @@ public class TCPServer {
         channel.close();
     }
 
-    static void deleteFile(byte[] byteArray, String ServerDirectory, SocketChannel channel) throws IOException {
-        String fileName = new String(byteArray);
-        File myObj = new File(ServerDirectory+fileName);
+    static void deleteFile(String filename, String ServerDirectory, SocketChannel channel) throws IOException {
+        File myObj = new File(ServerDirectory+filename);
         ByteBuffer replyBuffer;
 
         if (myObj.delete()) {
@@ -130,4 +106,12 @@ public class TCPServer {
         channel.close();
     }
 
+    static String getFileName(SocketChannel channel) throws IOException {
+        ByteBuffer buffer = ByteBuffer.allocate(1024);
+        int bytesRead = channel.read(buffer);
+        buffer.flip();
+        byte[] byteArray = new byte[bytesRead];
+        buffer.get(byteArray);
+        return new String(byteArray);
+    }
 }
