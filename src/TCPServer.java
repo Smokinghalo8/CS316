@@ -1,6 +1,4 @@
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -17,41 +15,26 @@ public class TCPServer {
             SocketChannel serveChannel = listenChannel.accept();
             String ServerDirectory = "ServerFiles/";
 
-            String clientMessage= getFileName(serveChannel);
+            String clientMessage= getUserInput(serveChannel);
             switch(clientMessage){
                 case "LIST":
                     getListOfFiles(ServerDirectory,serveChannel);
                     break;
                 case "DELETE":
-                    deleteFile(getFileName(serveChannel),ServerDirectory,serveChannel);
+                    deleteFile(getUserInput(serveChannel),ServerDirectory,serveChannel);
                     break;
                 case "RENAME":
-                    renameFile(getFileName(serveChannel),serveChannel);
+                    renameFile(getUserInput(serveChannel),serveChannel);
                     break;
                 case "DOWNLOAD":
-                    downloadFile(getFileName(serveChannel),serveChannel);
+                    downloadFile(getUserInput(serveChannel),serveChannel);
                     break;
                 case "UPLOAD":
+                    uploadFile(getUserInput(serveChannel),serveChannel);
                     break;
                 default:
                     break;
             }
-        }
-    }
-    static void downloadFile(String filename,SocketChannel channel) throws IOException {
-        if (errorHandling.checkIfFileExists(filename)){
-            FileInputStream fs = new FileInputStream("ServerFiles/"+filename);
-            FileChannel fc = fs.getChannel();
-            ByteBuffer fileContent = ByteBuffer.allocate(1024);
-            int byteRead;
-            do {
-                byteRead = fc.read(fileContent);
-                fileContent.flip();
-                channel.write(fileContent);
-                fileContent.clear();
-            }while(byteRead>=0);
-            fs.close();
-            channel.close();
         }
     }
 
@@ -89,10 +72,10 @@ public class TCPServer {
         ByteBuffer replyBuffer;
 
         if (errorHandling.checkIfFileExists(oldFilename)){
-            File file = new File("ServerFiles/"+oldFilename);
+            File oldFile = new File("ServerFiles/"+oldFilename);
             File rename = new File("ServerFiles/"+newFilename+oldFilename.substring(oldFilename.length()-4));
 
-            if (file.renameTo(rename)) {
+            if (oldFile.renameTo(rename)) {
                 replyBuffer = ByteBuffer.wrap("File successfully renamed".getBytes());
             }
             else {
@@ -106,7 +89,39 @@ public class TCPServer {
         channel.close();
     }
 
-    static String getFileName(SocketChannel channel) throws IOException {
+    static void downloadFile(String filename,SocketChannel channel) throws IOException {
+        if (errorHandling.checkIfFileExists(filename)){
+            FileInputStream fs = new FileInputStream("ServerFiles/"+filename);
+            FileChannel fc = fs.getChannel();
+            ByteBuffer fileContent = ByteBuffer.allocate(1024);
+            int byteRead;
+            do {
+                byteRead = fc.read(fileContent);
+                fileContent.flip();
+                channel.write(fileContent);
+                fileContent.clear();
+            }while(byteRead>=0);
+            fs.close();
+            channel.close();
+        }
+    }
+
+    static void uploadFile(String filename,SocketChannel channel) throws IOException {
+        FileOutputStream fs = new FileOutputStream("ServerFiles/"+filename,true);
+        FileChannel fc = fs.getChannel();
+        ByteBuffer fileContent = ByteBuffer.allocate(1024);
+        while(channel.read(fileContent)>=0){
+            fileContent.flip();
+            fc.write(fileContent);
+            fileContent.clear();
+        }
+
+        ByteBuffer replyBuffer = ByteBuffer.wrap((filename + " has been successfully uploaded").getBytes());
+        channel.write(replyBuffer);
+        channel.close();
+    }
+
+    static String getUserInput(SocketChannel channel) throws IOException {
         ByteBuffer buffer = ByteBuffer.allocate(1024);
         int bytesRead = channel.read(buffer);
         buffer.flip();
